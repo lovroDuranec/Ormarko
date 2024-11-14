@@ -3,7 +3,6 @@ package com.example.ormarko.ormarko.Security;
 import com.example.ormarko.ormarko.Service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.AuthenticationProvider;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,21 +27,24 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@AllArgsConstructor
 public class SecurityConfig {
 
-    @Autowired
     private final UserService userService;
+    private final CustomSuccesHandler succesHandler;
 
     @Autowired
-    CustomSuccesHandler succesHandler;
+    public SecurityConfig(UserService userService, CustomSuccesHandler succesHandler) {
+        this.userService = userService;
+        this.succesHandler = succesHandler;
+    }
+
     @Bean
-    public UserDetailsService userDetailsService(){
+    public UserDetailsService userDetailsService() {
         return userService;
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(){
+    public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userService);
         provider.setPasswordEncoder(passwordEncoder());
@@ -52,7 +54,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                //.cors(cors -> cors.configure(http))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(l ->
@@ -65,10 +66,8 @@ public class SecurityConfig {
                                     response.getWriter().flush();
                                 })
                 )
-
-
-                .authorizeHttpRequests(registry ->{
-                    registry.requestMatchers("/",  "/home", "/advertiser/**", "/signup/**", "api/signup/user","/login", "/api/default/getAll").permitAll();
+                .authorizeHttpRequests(registry -> {
+                    registry.requestMatchers("/", "/home", "/advertiser/**", "/signup/**", "api/signup/user", "/login", "/api/default/getAll").permitAll();
                     registry.requestMatchers("/user/**", "/profile").authenticated();
                     registry.anyRequest().authenticated();
                 })
@@ -78,7 +77,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -94,14 +93,15 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
     @Bean
-    public ClientRegistrationRepository clientRegistrationRepository(){
+    public ClientRegistrationRepository clientRegistrationRepository() {
         List<ClientRegistration> registrations = new ArrayList<>();
         registrations.add(googleClientRegistration());
         return new InMemoryClientRegistrationRepository(registrations);
     }
 
-    private ClientRegistration googleClientRegistration(){
+    private ClientRegistration googleClientRegistration() {
         return ClientRegistration.withRegistrationId("google")
                 .clientId("1081883435015-2ujbp1k9v81q86qg68gnfvkb55vjpcot.apps.googleusercontent.com")
                 .clientSecret("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")
@@ -114,5 +114,4 @@ public class SecurityConfig {
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .build();
     }
-
 }
