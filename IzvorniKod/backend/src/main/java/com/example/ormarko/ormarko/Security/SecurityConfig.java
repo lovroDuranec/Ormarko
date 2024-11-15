@@ -4,7 +4,6 @@ import com.example.ormarko.ormarko.Service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +32,6 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@AllArgsConstructor
 public class SecurityConfig {
 
     @Autowired
@@ -41,6 +39,10 @@ public class SecurityConfig {
 
     @Autowired
     CustomSuccesHandler succesHandler;
+
+    public SecurityConfig(UserService userService) {
+        this.userService = userService;
+    }
     @Bean
     public UserDetailsService userDetailsService(){
         return userService;
